@@ -26,7 +26,7 @@ class userController extends Controller
         if($user){
             $token = $user->createToken('token', [$user->id]);
         }
-        if ($this->act($request, $code)->sid) {
+        //if ($this->act($request, $code)->sid) { //sms works only for my number 01062153292
             $response = [
                 'status' => "success",
                 'msg' => 'Account Created',
@@ -34,7 +34,7 @@ class userController extends Controller
                 'token' => $token->plainTextToken,
             ];
             return response()->json($response);
-        }
+        //}
     }
     public function login(Request $request)
     {
@@ -70,13 +70,13 @@ class userController extends Controller
     function act($request, $code)
     {
         $sid = "AC96eaa4e191bdbb9a5e59bccf30f0f6a8"; // Your Account SID from www.twilio.com/console
-        $token = "700269accde1ca860285bf5fd5d1e1da"; // Your Auth Token from www.twilio.com/console
+        $token = "74d62a1a861fb308ec48d31d4060f3f1"; // Your Auth Token from www.twilio.com/console
         $client = new Client($sid, $token);
         $message = $client->messages->create(
             '+2' . $request->phone, // Text this number
             [
                 'from' => '+18508189216', // From a valid Twilio number
-                'body' => __('msg.your masnaak account activation code is') . $code
+                'body' => __('msg.your Blue Development account activation code is') . $code
             ]
         );
         return $message;
