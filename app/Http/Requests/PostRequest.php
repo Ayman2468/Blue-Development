@@ -26,8 +26,8 @@ class PostRequest extends FormRequest
         return [
             //
             'title' => "required|max:255",
-            'body' => "required|String",
-            'cover_image' => "requried",
+            'body' => "required|string",
+            'cover_image' => "required",
             'pinned' => "required"
         ];
     }

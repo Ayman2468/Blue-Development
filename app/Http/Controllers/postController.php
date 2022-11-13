@@ -6,9 +6,11 @@ use App\Http\Requests\PostRequest;
 use App\Http\Requests\PostUpdate;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Traits\imageinsertiontrait;
 
 class postController extends Controller
 {
+    use imageinsertiontrait;
     //
     public function index()
     {
@@ -40,7 +42,7 @@ class postController extends Controller
     {
         /** @var \App\Models\User $user **/
         $user = auth('sanctum')->user();
-        $post = Post::with('tags')->where('user_id',$user->id)->where('id',$post_id)->first();
+        $post = Post::with('tags')->where('user_id',$user->id)->where('id',$post_id)->where('removed',0)->first();
         if($post){
             $response = [
                 'status' => "success",
@@ -61,14 +63,28 @@ class postController extends Controller
     {
         /** @var \App\Models\User $user **/
         $user = auth('sanctum')->user();
+
+        $image =$request->file('cover_image');
+        $folder = public_path('images/posts/'.$user->id);
+        if (!file_exists($folder)) {
+            mkdir($folder);
+        }
+        $file_name = $this->imageinsertion($image, $folder);
+        if(str_contains($file_name,'error')){
+            return response()->json([
+                'status' => false,
+                'msg' => "one or more images have wrong extension"
+            ]);
+        }
         $post = Post::create([
             'user_id' => $user->id,
             'title' => $request->title,
             'body' => $request->body,
-            'cover_image' => $request->title,
+            'cover_image' => $file_name,
             'pinned' => $request->pinned,
             'removed' => 0,
         ]);
+
         $response = [
             'status' => "success",
             'msg' => 'post created',
@@ -81,10 +97,27 @@ class postController extends Controller
     {
         /** @var \App\Models\User $user **/
         $user = auth('sanctum')->user();
-        Post::where('id', $id)->where('user_id',$user->id)->update([
+        $post = Post::where('id', $id)->where('user_id',$user->id)->first();
+        if($request->file('cover_image')){
+                $image =$request->file('cover_image');
+            $folder = public_path('images/posts/'.$user->id);
+            if (!file_exists($folder)) {
+                mkdir($folder);
+            }
+            $file_name = $this->imageinsertion($image, $folder);
+            if(str_contains($file_name,'error')){
+                return response()->json([
+                    'status' => false,
+                    'msg' => "one or more images have wrong extension"
+                ]);
+            }
+        }else{
+            $file_name = $post->cover_image;
+        }
+        $post->update([
             'title' => $request->title,
             'body' => $request->body,
-            'cover_image' => $request->title,
+            'cover_image' => $file_name,
             'pinned' => $request->pinned,
         ]);
         $post = Post::find($id);
@@ -129,5 +162,4 @@ class postController extends Controller
         }
         return response()->json($response);
     }
-
 }
