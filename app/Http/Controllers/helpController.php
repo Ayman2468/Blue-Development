@@ -38,17 +38,15 @@ class helpController extends Controller
         if (Cache::has('zeropostusersNumber'))
             {
                 $zeropostusersNumber = Cache::get('zeropostusersNumber');
-                $userids = User::select('id')->get()->toArray();
-                $postuserids = Post::select('user_id')->get()->toArray();
-                if($userids == null) $userids[0] = [0];
-                if($postuserids == null) $postuserids[0] = [0];
-                $arr = array_diff($userids[0],$postuserids[0]);
+                $userids = User::pluck('id')->toArray();
+                $postuserids = Post::pluck('user_id')->toArray();
+                $arr = array_diff($userids,$postuserids);
                 $zeropostusersNumber = User::whereIn('id',$arr)->get()->count();
             }
             else
             {
-                $userids = User::select('id')->get()->toArray();
-                $postuserids = Post::select('user_id')->get()->toArray();
+                $userids = User::pluck('id')->toArray();
+                $postuserids = Post::pluck('user_id')->toArray();
                 $arr = array_diff($userids,$postuserids);
                 $zeropostusersNumber = User::whereIn('id',$arr)->get()->count();
             }

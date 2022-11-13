@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PostRequest;
 use App\Http\Requests\PostUpdate;
 use App\Models\Post;
+use App\Models\post_tag;
 use Illuminate\Http\Request;
 use App\Traits\imageinsertiontrait;
 
@@ -85,6 +86,15 @@ class postController extends Controller
             'removed' => 0,
         ]);
 
+        if (isset($request->tags)) {
+            foreach ($request->tags as $tag) {
+                post_tag::create([
+                    'post_id' => $post->id,
+                    'tag_id'  => $tag
+                ]);
+            }
+        }
+
         $response = [
             'status' => "success",
             'msg' => 'post created',
@@ -120,6 +130,18 @@ class postController extends Controller
             'cover_image' => $file_name,
             'pinned' => $request->pinned,
         ]);
+        if (isset($request->tags)) {
+            $oldtags = post_tag::where('post_id',$post->id)->pluck('tag_id')->toArray();
+            $diff = array_diff($oldtags,$request->tags);
+            post_tag::whereIn('tag_id',$diff)->delete();
+            $diff2 = array_diff($request->tags,$oldtags);
+            foreach ($diff2 as $tag) {
+                post_tag::create([
+                    'post_id' => $post->id,
+                    'tag_id'  => $tag
+                ]);
+            }
+        }
         $post = Post::find($id);
         $response = [
             'status' => "success",
